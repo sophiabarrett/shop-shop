@@ -6,14 +6,12 @@ import {
   ADD_TO_CART,
   UPDATE_PRODUCTS,
 } from "../utils/actions";
-
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-
 import { QUERY_PRODUCTS } from "../utils/queries";
 import spinner from "../assets/spinner.gif";
-
 import Cart from "../components/Cart";
+import { idbPromise } from "../utils/helpers";
 
 function Detail() {
   const [state, dispatch] = useStoreContext();
@@ -50,15 +48,29 @@ function Detail() {
   };
 
   useEffect(() => {
+    // check if there are already products in global store
     if (products.length) {
       setCurrentProduct(products.find((product) => product._id === id));
+      // else, if connected, retrieve from server
     } else if (data) {
       dispatch({
         type: UPDATE_PRODUCTS,
         products: data.products,
       });
+
+      data.products.forEach((product) => {
+        idbPromise("products", "put", product);
+      });
+      // else retrieve from idb
+    } else if (!loading) {
+      idbPromise("products", "get").then((products) => {
+        dispatch({
+          type: UPDATE_PRODUCTS,
+          products: products,
+        });
+      });
     }
-  }, [products, data, dispatch, id]);
+  }, [products, data, loading, dispatch, id]);
 
   return (
     <>

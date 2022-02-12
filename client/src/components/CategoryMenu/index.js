@@ -26,7 +26,7 @@ function CategoryMenu() {
         idbPromise("categories", "put", category);
       });
     } else if (!loading) {
-      idbPromise(idbPromise("categories", "get")).then((categories) => {
+      idbPromise("categories", "get").then((categories) => {
         dispatch({
           type: UPDATE_CATEGORIES,
           categories: categories,
